@@ -2,17 +2,16 @@
  * CONSTANTS
  ***********/
 
-import ExpiryMap from "expiry-map";
-import { v4 as uuidv4 } from "uuid";
-import { createParser } from "eventsource-parser";
-import { isEmpty } from "lodash-es";
+import ExpiryMap from 'expiry-map';
+import { v4 as uuidv4 } from 'uuid';
+import { createParser } from 'eventsource-parser';
+import { isEmpty } from 'lodash-es';
 
-const CHATGPT_URL = "https://chat.openai.com/api/auth/session";
-const CHATGPT_API_URL = "https://chat.openai.com/backend-api";
-const STACKOVERFLOW_BASE_URL = "stackoverflow.com/questions/";
-const KEY_ACCESS_TOKEN = "accessToken";
-const AUTH_ERROR_MESSAGE = `<p>Please login and pass Cloudflare check at <a href="https://chat.openai.com" target="_blank">chat.openai.com</a></p>`;
-const CLOUDFLARE_ERROR_MESSAGE = `<p>Please pass the Cloudflare check at <a href="https://chat.openai.com" target="_blank">chat.openai.com</a></p>`;
+const CHATGPT_URL = 'https://chat.openai.com/api/auth/session';
+const CHATGPT_API_URL = 'https://chat.openai.com/backend-api';
+const KEY_ACCESS_TOKEN = 'accessToken';
+const AUTH_ERROR_MESSAGE = `<p>请登录并通过 Cloudflare 检查 <a href="https://chat.openai.com" target="_blank">chat.openai.com</a></p>`;
+const CLOUDFLARE_ERROR_MESSAGE = `<p>请通过 Cloudflare 检查 <a href="https://chat.openai.com" target="_blank">chat.openai.com</a></p>`;
 const cache = new ExpiryMap(10 * 1000);
 
 /*********
@@ -47,8 +46,8 @@ async function fetchSSE(resource, options) {
 
     let errorMessage;
     if (!isEmpty(error)) {
-      if ("detail" in error) {
-        if (typeof error.detail === "object" && "message" in error.detail) {
+      if ('detail' in error) {
+        if (typeof error.detail === 'object' && 'message' in error.detail) {
           errorMessage = `<p style="color: red">${error.detail.message}</p>`;
         } else {
           errorMessage = `<p style="color: red">${error.detail}</p>`;
@@ -63,8 +62,8 @@ async function fetchSSE(resource, options) {
     throw new Error(errorMessage);
   }
 
-  const parser = createParser(event => {
-    if (event.type === "event") {
+  const parser = createParser((event) => {
+    if (event.type === 'event') {
       onMessage(event.data);
     }
   });
@@ -77,18 +76,18 @@ async function fetchSSE(resource, options) {
 
 async function setConversationProperty(token, conversationId, propertyObject) {
   return fetch(`${CHATGPT_API_URL}/conversation/${conversationId}`, {
-    method: "PATCH",
+    method: 'PATCH',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(propertyObject)
+    body: JSON.stringify(propertyObject),
   });
 }
 
 async function getAccessToken() {
   if (cache.get(KEY_ACCESS_TOKEN)) {
-    return cache.get(KEY_ACCESS_TOKEN)
+    return cache.get(KEY_ACCESS_TOKEN);
   }
 
   const resp = await fetch(CHATGPT_URL);
@@ -96,7 +95,7 @@ async function getAccessToken() {
     throw new Error(CLOUDFLARE_ERROR_MESSAGE);
   }
 
-  const data = await resp.json().catch(() => ({}))
+  const data = await resp.json().catch(() => ({}));
   if (!data.accessToken) {
     throw new Error(AUTH_ERROR_MESSAGE);
   }
@@ -112,9 +111,11 @@ async function generateAnswer(port, question) {
   let conversationId;
   const deleteConversation = () => {
     if (conversationId) {
-      setConversationProperty(accessToken, conversationId, { is_visible: false });
+      setConversationProperty(accessToken, conversationId, {
+        is_visible: false,
+      });
     }
-  }
+  };
 
   const controller = new AbortController();
   port.onDisconnect.addListener(() => {
@@ -123,35 +124,37 @@ async function generateAnswer(port, question) {
   });
 
   await fetchSSE(`${CHATGPT_API_URL}/conversation`, {
-    method: "POST",
+    method: 'POST',
     signal: controller.signal,
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,
     },
     body: JSON.stringify({
-      action: "next",
+      action: 'next',
       messages: [
         {
           id: uuidv4(),
-          role: "user",
+          role: 'user',
           content: {
-            content_type: "text",
+            content_type: 'text',
             parts: [question],
           },
         },
       ],
-      model: "text-davinci-002-render",
-      parent_message_id: uuidv4()
+      model: 'text-davinci-002-render',
+      parent_message_id: uuidv4(),
     }),
     onMessage(message) {
-      if (message === "[DONE]") { // ChatGPT output is done streaming
+      if (message === '[DONE]') {
+        // ChatGPT output is done streaming
         deleteConversation();
         return;
       }
 
       let data;
-      try { // Sometimes a non-JSON payload is returned by ChatGPT
+      try {
+        // Sometimes a non-JSON payload is returned by ChatGPT
         data = JSON.parse(message);
       } catch (err) {
         return;
@@ -161,15 +164,15 @@ async function generateAnswer(port, question) {
       conversationId = data.conversation_id;
 
       if (text) {
-        console.log("Sent: CHATGPT_OUTPUT");
+        console.log('Sent: CHATGPT_OUTPUT');
 
         port.postMessage({
-          key: "CHATGPT_OUTPUT",
+          key: 'CHATGPT_OUTPUT',
           value: {
             text,
             messageId: data.message.id,
             conversationId: data.conversation_id,
-          }
+          },
         });
       }
     },
@@ -179,9 +182,9 @@ async function generateAnswer(port, question) {
 async function sendMessageFeedback(data) {
   const accessToken = await getAccessToken();
   fetch(`${CHATGPT_API_URL}/conversation/message_feedback`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,
     },
     body: JSON.stringify(data),
@@ -192,26 +195,26 @@ async function sendMessageFeedback(data) {
  * EVENT LISTENERS
  *****************/
 
-chrome.runtime.onConnect.addListener(port => {
-  console.assert(port.name === "main-port");
+chrome.runtime.onConnect.addListener((port) => {
+  console.assert(port.name === 'main-port');
 
-  port.onMessage.addListener(async message => {
+  port.onMessage.addListener(async (message) => {
     const { key, value } = message;
 
     console.log(`Received: ${key}`);
 
     try {
-      if (key === "SCRAPED_QUESTION") {
+      if (key === 'SCRAPED_QUESTION') {
         const { questionText, questionId } = value;
 
         await generateAnswer(port, questionText);
-      } else if (key === "FEEDBACK") {
+      } else if (key === 'FEEDBACK') {
         const { messageId, conversationId, questionId, rating } = value;
 
         await sendMessageFeedback({ messageId, conversationId, rating });
       }
     } catch (err) {
-      port.postMessage({ key: "ERROR", value: err.message });
+      port.postMessage({ key: 'ERROR', value: err.message });
       cache.delete(KEY_ACCESS_TOKEN);
     }
   });
@@ -221,12 +224,12 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   const { key, value } = request;
 
   try {
-    if (key === "CHECK_ACCESS") {
+    if (key === 'CHECK_ACCESS') {
       await getAccessToken();
-      sendResponse({ key: "ACCESS_CONFIRMED", value: true });
+      sendResponse({ key: 'ACCESS_CONFIRMED', value: true });
     }
   } catch (err) {
-    sendResponse({ key: "ERROR", value: err.message });
+    sendResponse({ key: 'ERROR', value: err.message });
     cache.delete(KEY_ACCESS_TOKEN);
   }
 });

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "ChatGPT for StackOverflow",
-  "version": "0.3.0",
-  "description": "ChatGPT's response to every StackOverflow question",
+  "name": "ChatGPT for SegmentFault",
+  "version": "0.1.0",
+  "description": "ChatGPT's response to every SegmentFault question",
   "icons": {
     "16": "icons/icon_16.png",
     "32": "icons/icon_32.png",
@@ -13,25 +13,25 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "ChatGPT for StackOverflow",
+    "default_title": "ChatGPT for SegmentFault",
     "default_popup": "popup.html"
   },
-  "host_permissions": ["https://*.openai.com/"],
+  "host_permissions": [
+    "https://*.openai.com/"
+  ],
   "permissions": [
     "storage"
   ],
   "content_scripts": [
     {
       "matches": [
-        "http://stackoverflow.com/questions/*",
-        "http://www.stackoverflow.com/questions/*",
-        "https://stackoverflow.com/questions/*",
-        "https://www.stackoverflow.com/questions/*"
+        "https://segmentfault.com/q/*"
       ],
       "run_at": "document_idle",
       "js": [
         "contentScript.js"
       ]
     }
-  ]
+  ],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
 }

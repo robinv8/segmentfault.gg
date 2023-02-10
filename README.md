@@ -1,12 +1,12 @@
-# ChatGPT for StackOverflow
+# ChatGPT for SegmentFault
 
-A browser extension that displays ChatGPT's response alongside community answers to StackOverflow questions.
+A browser extension that displays ChatGPT's response alongside community answers to SegmentFault questions.
 
 ![Demo](demo.gif)
 
 ## Installation
 
-You can install the extension [for Chrome](https://chrome.google.com/webstore/detail/chatgpt-for-stackoverflow/apjhekoaogdimcgiihoncakocdddhmlk) or [for Firefox.](https://addons.mozilla.org/en-US/firefox/addon/chatgpt-for-stackoverflow/)
+You can install the extension [for Chrome](https://chrome.google.com/webstore/detail/chatgpt-for-segmentfault/apjhekoaogdimcgiihoncakocdddhmlk) or [for Firefox.](https://addons.mozilla.org/en-US/firefox/addon/chatgpt-for-segmentfault/)
 
 ## Running Locally
 
