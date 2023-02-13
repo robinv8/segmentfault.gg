@@ -20,7 +20,7 @@
 
   "content_scripts": [
     {
-      "matches": ["http://segmentfault.com/q/*"],
+      "matches": ["https://segmentfault.com/q/*"],
       "run_at": "document_end",
       "js": ["contentScript.js"]
     }
