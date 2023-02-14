@@ -34,6 +34,12 @@ const getQuestionId = () => {
   return questionId;
 };
 
+const getQuestionTitle = (element) => {
+  const titleElement = element.querySelector('h1.h2');
+  return titleElement.textContent;
+
+}
+
 const convertPostToText = (postElement) => {
   const postText = Array.from(
     postElement.querySelector('article').childNodes,
@@ -112,7 +118,7 @@ const createAnswerElement = (isError) => {
   lhsElement.className = 'votecell me-3';
   lhsElement.id = 'chatGPTOptions';
   rhsElement.className = 'answercell flex-fill';
-  textElement.className = 's-prose chat-gpt-post-body fmt';
+  textElement.className = 's-prose chat-gpt-post-body fmt text-break';
   textElement.id = isError ? 'chatGPTErrorText' : 'chatGPTAnswerText';
 
   stylizeLHSElement(lhsElement);
@@ -255,13 +261,14 @@ const insertFeedbackIcons = (messageId, conversationId) => {
 
 const scrapeQuestion = () => {
   const questionElement = getQuestionElement();
+  const questionTitle = getQuestionTitle(questionElement);
   const questionText = convertPostToText(questionElement);
   const questionId = getQuestionId();
 
   port.postMessage({
     key: 'SCRAPED_QUESTION',
     value: {
-      questionText,
+      questionText:`问题题目：${questionTitle}\n 问题内容：${questionText}`,
       questionId,
     },
   });
